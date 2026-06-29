@@ -1,0 +1,49 @@
+name: Backend CI-CD Pipeline (IaC & Code)
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-python-version: '3.12'
+
+      - name: Run Python Visual Tests
+        run: |
+          # If you have specific pytest tests, run them here. 
+          # For now, we will verify the syntax of your main file.
+          python -m py_compile lambda_function.py
+
+      - name: Package Lambda Function Zip Artifact
+        run: |
+          zip -r lambda_function.zip lambda_function.py
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Authenticate with AWS via Secure OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::940127592255:role/github-actions-deploy-role
+          aws-region: eu-central-1
+
+      - name: Terraform Initialize
+        run: terraform init
+
+      - name: Terraform Deploy (Auto-Approve)
+        run: terraform apply -auto-approve
