@@ -8,8 +8,8 @@ terraform {
 }
 
 provider "aws" {
-  region  = "eu-central-1"
-  profile = "Prodacc"
+  region = "eu-central-1"
+  # Profile removed so it dynamically adapts to GitHub Actions or local environment vars
 }
 
 # 1. DynamoDB Table Definition
@@ -73,11 +73,11 @@ resource "aws_iam_role_policy" "lambda_dynamodb_policy" {
 
 # 4. Lambda Function Definition
 resource "aws_lambda_function" "visitor_counter" {
-  function_name    = "resume-counter-function" # Make sure this matches your actual console name
+  function_name    = "resume-counter-function"
   role             = aws_iam_role.lambda_exec_role.arn
   handler          = "lambda_function.lambda_handler"
   runtime          = "python3.12"
-  filename         = "lambda_function.zip" # Terraform requires a deployment artifact reference
+  filename         = "lambda_function.zip"
 }
 
 # 5. HTTP API Gateway Definition
